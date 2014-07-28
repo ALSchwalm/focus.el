@@ -21,22 +21,25 @@
 
 ;; Use 'focus-focus-buffer' to focus on the current buffer, and
 ;; focus-unfocus-buffer to return to the previous window
-;; configuration
+;; configuration.
+
+;; 'focus-toggle-focus' will toggle between a focused and unfocused state.
 
 ;;; Code:
 
 (defvar focus-saved-buffer nil)
 (defvar focus-pre-focus-config nil)
-(defvar focus-buffer-width 80)
+(defvar focus-buffer-width 85)
+(defvar focus-space-buffer-name "*spacing*")
 
 (defun focus-focus-buffer ()
-  "Focus on the current buffer"
+  "Focus on the current buffer."
   (interactive)
   (setq focus-pre-focus-config (current-window-configuration))
   (setq focus-saved-buffer (current-buffer))
   (delete-other-windows)
-  (get-buffer-create "*spacing*")
-  (switch-to-buffer "*spacing*")
+  (get-buffer-create focus-space-buffer-name)
+  (switch-to-buffer focus-space-buffer-name)
   (let ((spacing-width))
     (setq spacing-width (/ (- (frame-width) focus-buffer-width) 2))
     (split-window-right spacing-width)
@@ -46,10 +49,16 @@
     (switch-to-buffer focus-saved-buffer)))
 
 (defun focus-unfocus-buffer ()
-  "Return to the window configuration before 'focus-focus-buffer'
-was invoked."
+  "Return to the window configuration before 'focus-focus-buffer' was invoked."
   (interactive)
   (set-window-configuration focus-pre-focus-config)
-  (kill-buffer "*spacing*"))
+  (kill-buffer focus-space-buffer-name))
+
+(defun focus-toggle-focus ()
+  "Toggle between a focus and unfocused state."
+  (interactive)
+  (if (get-buffer focus-space-buffer-name)
+      (focus-unfocus-buffer)
+    (focus-focus-buffer)))
 
 ;;; focus.el ends here
