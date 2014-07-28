@@ -61,4 +61,5 @@
       (focus-unfocus-buffer)
     (focus-focus-buffer)))
 
+(provide 'focus)
 ;;; focus.el ends here
