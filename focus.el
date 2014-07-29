@@ -30,7 +30,7 @@
 (defvar focus-saved-buffer nil)
 (defvar focus-pre-focus-config nil)
 (defvar focus-buffer-width 85)
-(defvar focus-space-buffer-name "*spacing*")
+(defvar focus-space-buffer-name " *spacing*")
 
 (defun focus-focus-buffer ()
   "Focus on the current buffer."
@@ -38,7 +38,6 @@
   (setq focus-pre-focus-config (current-window-configuration))
   (setq focus-saved-buffer (current-buffer))
   (delete-other-windows)
-  (get-buffer-create focus-space-buffer-name)
   (switch-to-buffer focus-space-buffer-name)
   (let ((spacing-width))
     (setq spacing-width (/ (- (frame-width) focus-buffer-width) 2))
@@ -57,9 +56,23 @@
 (defun focus-toggle-focus ()
   "Toggle between a focus and unfocused state."
   (interactive)
-  (if (get-buffer focus-space-buffer-name)
+  (if (get-buffer-window focus-space-buffer-name)
       (focus-unfocus-buffer)
     (focus-focus-buffer)))
+
+(defun focus-widen-focus (&optional amount)
+  "Increase the size of the focus buffer by AMOUNT characters on each side.
+AMOUNT defaults to 5 if not given."
+  (interactive)
+  (setq focus-buffer-width (+ (or amount 5) focus-buffer-width))
+  (focus-toggle-focus)
+  (focus-toggle-focus))
+
+(defun focus-narrow-focus (&optional amount)
+  "Decrease the size of the focus buffer by AMOUNT characters on each side.
+AMOUNT defaults to 5 if not given."
+  (interactive)
+  (focus-widen-focus (- (or amount 5))))
 
 (provide 'focus)
 ;;; focus.el ends here
