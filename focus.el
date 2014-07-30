@@ -31,10 +31,15 @@
 (defvar focus-pre-focus-config nil)
 (defvar focus-buffer-width 85)
 (defvar focus-space-buffer-name " *spacing*")
+(defvar focus-vertical-border-color nil)
+(defvar focus-mode-line-format nil)
+(defvar focus-focused nil)
 
-(defun focus-focus-buffer ()
-  "Focus on the current buffer."
+(defun focus-focus-buffer (&optional show-mode-line)
+  "Focus on the current buffer.
+If SHOW-MODE-LINE is non-nil, show the mode line of the focused buffer."
   (interactive)
+  (setq focus-focused t)
   (setq focus-pre-focus-config (current-window-configuration))
   (setq focus-saved-buffer (current-buffer))
   (delete-other-windows)
@@ -45,13 +50,40 @@
     (other-window 1)
     (split-window-right focus-buffer-width)
     (setq mode-line-format nil)
-    (switch-to-buffer focus-saved-buffer)))
+    (unless focus-vertical-border-color
+      (setq focus-vertical-border-color (face-attribute 'vertical-border :foreground)))
+    (set-face-attribute 'vertical-border nil
+                        :foreground (face-attribute 'default :background))
+    (switch-to-buffer focus-saved-buffer)
+    (unless show-mode-line
+     (unless focus-mode-line-format
+       (setq focus-mode-line-format mode-line-format))
+     (setq mode-line-format nil)))
+  (add-hook 'window-configuration-change-hook 'focus-config-hook))
 
 (defun focus-unfocus-buffer ()
   "Return to the window configuration before 'focus-focus-buffer' was invoked."
   (interactive)
+  (setq focus-focused nil)
+  (remove-hook 'window-configuration-change-hook 'focus-config-hook)
   (set-window-configuration focus-pre-focus-config)
+  (set-face-attribute 'vertical-border nil
+                      :foreground focus-vertical-border-color)
+  (when focus-mode-line-format
+    (setq mode-line-format focus-mode-line-format))
   (kill-buffer focus-space-buffer-name))
+
+(defun focus-config-hook ()
+  "Function run when configuration changed while focused."
+  (unless(eq focus-saved-buffer (current-buffer))
+    (switch-to-buffer focus-saved-buffer)
+    (when focus-mode-line-format
+      (setq mode-line-format focus-mode-line-format))
+    (previous-buffer))
+  (when focus-vertical-border-color
+    (set-face-attribute 'vertical-border nil
+                        :foreground focus-vertical-border-color)))
+
 
 (defun focus-toggle-focus ()
   "Toggle between a focus and unfocused state."
