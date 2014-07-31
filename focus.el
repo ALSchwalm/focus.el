@@ -75,11 +75,9 @@ If SHOW-MODE-LINE is non-nil, show the mode line of the focused buffer."
 
 (defun focus-config-hook ()
   "Function run when configuration changed while focused."
-  (unless(eq focus-saved-buffer (current-buffer))
-    (switch-to-buffer focus-saved-buffer)
-    (when focus-mode-line-format
-      (setq mode-line-format focus-mode-line-format))
-    (previous-buffer))
+  (remove-hook 'window-configuration-change-hook 'focus-config-hook)
+  (when focus-mode-line-format
+    (setq mode-line-format focus-mode-line-format))
   (when focus-vertical-border-color
     (set-face-attribute 'vertical-border nil
                         :foreground focus-vertical-border-color)))
